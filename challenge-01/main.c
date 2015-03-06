@@ -4,6 +4,9 @@
 
 #include "main.h"
 
+static const char BASE64TABLE[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+static const char BASE64PADDING = '=';
+
 int main() {
     char hex[128];
     printf("Enter a hexidecimal:\n");
@@ -33,38 +36,22 @@ char * binary2base64(unsigned char * binary, int length) {
     int base64length = (length + padding) * 4 / 3;
     char * base64 = malloc(base64length);
     while (i < base64length) {
-        base64[i++] = base64index(*binary>>2);
+        base64[i++] = BASE64TABLE[*binary>>2];
         if (i + 3 < base64length || !padding) {
-            base64[i++] = base64index((*binary<<4 | *(++binary)>>4) & 63);
-            base64[i++] = base64index((*binary<<2 | *(++binary)>>6) & 63);
-            base64[i++] = base64index(*binary & 63);
-        } else { // Last octet and padding of...
+            base64[i++] = BASE64TABLE[(*binary<<4 | *(++binary)>>4) & 63];
+            base64[i++] = BASE64TABLE[(*binary<<2 | *(++binary)>>6) & 63];
+            base64[i++] = BASE64TABLE[*binary & 63];
+        } else { // Last 3 octets and padding of...
             if (padding == 1) { // ... 1.
-                base64[i++] = base64index((*binary<<4 | *(++binary)>>4) & 63);
-                base64[i++] = base64index(*binary<<2 & 63);
+                base64[i++] = BASE64TABLE[(*binary<<4 | *(++binary)>>4) & 63];
+                base64[i++] = BASE64TABLE[*binary<<2 & 63];
             } else { // ... 2.
-                base64[i++] = base64index(*binary<<4 & 63);
-                base64[i++] = '=';
+                base64[i++] = BASE64TABLE[*binary<<4 & 63];
+                base64[i++] = BASE64PADDING;
             }
-            base64[i++] = '=';
+            base64[i++] = BASE64PADDING;
         }
         binary++;
     }
     return base64;
-}
-
-char base64index(unsigned char index) {
-    if (index < 26) { // [A-Z] start at 65.
-        return index + 65;
-    } else if (index < 52) { // [a-z] start at 97.
-        return index + 71;
-    } else if (index < 62) { // [0-9] start at 48.
-        return index - 4;
-    } else if (index == 62) { // '+'.
-        return '+';
-    } else if (index == 63) { // '/'
-        return '/';
-    } else {
-        return '?'; // Shouldn't be possible.
-    }
 }

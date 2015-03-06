@@ -3,6 +3,5 @@
 
 unsigned char * hex2binary(char * hex);
 char * binary2base64(unsigned char * binary, int length);
-char base64index(unsigned char index);
 
 #endif
